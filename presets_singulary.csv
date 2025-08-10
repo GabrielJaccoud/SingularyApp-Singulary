@@ -1,0 +1,14 @@
+preset_id,preset_name,dimension,category,base_frequency_hz,beat_frequency_hz,light_frequency_hz,duration_minutes,description,is_custom,user_id,created_at
+3d-focus,Foco 3D,3D,Foco,528,40,10,20,Frequências para concentração e produtividade,false,,2025-08-10T10:00:00Z
+3d-relax,Relaxamento 3D,3D,Relaxamento,432,8,4,30,Frequências para relaxamento profundo,false,,2025-08-10T10:00:00Z
+3d-energy,Energia 3D,3D,Energia,741,35,12,15,Frequências para aumento de energia e vitalidade,false,,2025-08-10T10:00:00Z
+4d-meditation,Meditação 4D,4D,Meditação,285,6,3,45,Acesso ao plano astral e meditação profunda,false,,2025-08-10T10:00:00Z
+4d-lucid,Sonho Lúcido 4D,4D,Sono,963,4,2,60,Frequências para indução de sonhos lúcidos,false,,2025-08-10T10:00:00Z
+4d-astral,Projeção Astral 4D,4D,Espiritual,396,7.83,1.5,50,Frequências para facilitar projeção astral,false,,2025-08-10T10:00:00Z
+5d-love,Amor Incondicional 5D,5D,Espiritual,144,7.83,1,40,Conexão com o eu superior e amor universal,false,,2025-08-10T10:00:00Z
+5d-healing,Cura Espiritual 5D,5D,Cura,741,10,5,35,Frequências de cura e regeneração celular,false,,2025-08-10T10:00:00Z
+5d-unity,Unidade Cósmica 5D,5D,Espiritual,852,3.5,0.5,55,Frequências para conexão com a consciência universal,false,,2025-08-10T10:00:00Z
+custom-001,Minha Frequência Especial,Personalizado,Foco,440,20,8,25,Preset personalizado para concentração matinal,true,user-abc123,2025-08-10T14:30:00Z
+custom-002,Relaxamento Noturno,Personalizado,Sono,256,2,1,45,Frequências suaves para preparação do sono,true,user-def456,2025-08-10T15:45:00Z
+custom-003,Criatividade Flow,Personalizado,Criatividade,528,12,6,30,Preset para estimular criatividade e flow,true,user-ghi789,2025-08-10T16:20:00Z
+

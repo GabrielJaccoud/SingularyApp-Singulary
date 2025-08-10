@@ -1,0 +1,8 @@
+device_id,device_name,device_type,model,firmware_version,user_id,is_connected,battery_level,last_seen,capabilities,status
+device-led-001,LED Ring Singulary,led_ring,SLR-2025,1.2.3,user-abc123,true,85,2025-08-10T15:30:00Z,"light_therapy,strobe_patterns,color_therapy",active
+device-led-002,LED Strip Pro,led_strip,SLS-2025,1.1.8,user-def456,false,0,2025-08-09T22:15:00Z,"ambient_lighting,sync_audio",offline
+device-bh-001,Binaural Headset Alpha,binaural_headset,BHA-2025,2.0.1,user-ghi789,true,92,2025-08-10T15:25:00Z,"binaural_beats,noise_cancellation,eeg_feedback",active
+device-sa-001,Sensor Array Beta,sensor_array,SAB-2025,1.5.2,user-abc123,true,78,2025-08-10T15:28:00Z,"heart_rate,brainwave_monitoring,environmental_sensors",monitoring
+device-vr-001,VR Headset Gamma,vr_headset,VRG-2025,3.1.0,user-jkl012,false,45,2025-08-08T19:45:00Z,"immersive_visuals,spatial_audio,eye_tracking",charging
+device-mat-001,Vibration Mat Delta,vibration_mat,VMD-2025,1.0.5,user-mno345,true,100,2025-08-10T15:32:00Z,"tactile_feedback,frequency_vibration,body_resonance",standby
+

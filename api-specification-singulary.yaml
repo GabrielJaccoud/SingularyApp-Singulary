@@ -1,0 +1,1537 @@
+openapi: 3.0.3
+info:
+  title: Singulary API
+  description: |
+    API completa para o aplicativo Singulary - Ressonador Quântico Pessoal (RQP).
+    
+    Esta API fornece endpoints para gerenciamento de usuários, presets de frequências,
+    sessões de meditação/terapia sonora e integração futura com hardware.
+    
+    ## Funcionalidades Principais
+    - Autenticação JWT
+    - Gerenciamento de presets (padrão e personalizados)
+    - Registro e análise de sessões
+    - Exportação de dados em CSV
+    - Estatísticas e relatórios
+    - Preparação para integração com hardware
+    
+    ## Segurança
+    - Autenticação via JWT tokens
+    - Validação de dados de entrada
+    - Rate limiting (implementação futura)
+    - CORS configurado para frontend
+    
+    ## Versioning
+    Esta é a versão 1.0 da API, compatível com o MVP do Singulary.
+    
+  version: 1.0.0
+  contact:
+    name: Equipe Singulary
+    email: api@singulary.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Servidor de desenvolvimento local
+  - url: https://api.singulary.app/v1
+    description: Servidor de produção (futuro)
+
+tags:
+  - name: auth
+    description: Autenticação e gerenciamento de usuários
+  - name: presets
+    description: Gerenciamento de presets de frequências
+  - name: sessions
+    description: Registro e análise de sessões
+  - name: users
+    description: Operações de usuário
+  - name: devices
+    description: Integração com hardware (futuro)
+  - name: health
+    description: Monitoramento da API
+
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Verificar saúde da API
+      description: Endpoint para verificar se a API está funcionando corretamente
+      responses:
+        '200':
+          description: API funcionando normalmente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  message:
+                    type: string
+                    example: Singulary API está funcionando
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: 1.0.0
+
+  # AUTENTICAÇÃO
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Registrar novo usuário
+      description: Criar uma nova conta de usuário no sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: João Silva
+                  description: Nome completo do usuário
+                email:
+                  type: string
+                  format: email
+                  example: joao@example.com
+                  description: Email único do usuário
+                password:
+                  type: string
+                  minLength: 6
+                  example: senha123
+                  description: Senha com pelo menos 6 caracteres
+                consent:
+                  type: boolean
+                  example: true
+                  description: Consentimento para termos de uso
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Usuário criado com sucesso
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email já está em uso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Fazer login
+      description: Autenticar usuário e obter token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: joao@example.com
+                password:
+                  type: string
+                  example: senha123
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login realizado com sucesso
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/verify:
+    post:
+      tags:
+        - auth
+      summary: Verificar token JWT
+      description: Validar se o token JWT é válido e obter informações do usuário
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: Renovar token JWT
+      description: Gerar um novo token JWT válido
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token renovado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Token renovado com sucesso
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/change-password:
+    post:
+      tags:
+        - auth
+      summary: Alterar senha
+      description: Alterar a senha do usuário autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  example: senhaAtual123
+                newPassword:
+                  type: string
+                  minLength: 6
+                  example: novaSenha456
+      responses:
+        '200':
+          description: Senha alterada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Senha alterada com sucesso
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # PRESETS
+  /presets:
+    get:
+      tags:
+        - presets
+      summary: Listar presets
+      description: |
+        Obter lista de presets disponíveis (padrão + personalizados do usuário).
+        Inclui filtros opcionais por dimensão e categoria.
+      parameters:
+        - name: user_id
+          in: query
+          description: ID do usuário para incluir presets personalizados
+          schema:
+            type: string
+            example: user-abc123
+        - name: dimension
+          in: query
+          description: Filtrar por dimensão
+          schema:
+            type: string
+            enum: [3D, 4D, 5D, Personalizado]
+            example: 3D
+        - name: category
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+            enum: [Foco, Relaxamento, Meditação, Sono, Espiritual, Cura, Personalizado]
+            example: Foco
+      responses:
+        '200':
+          description: Lista de presets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preset'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - presets
+      summary: Criar preset personalizado
+      description: Criar um novo preset personalizado para o usuário
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - baseFrequency
+                - beatFrequency
+                - lightFrequency
+                - duration
+              properties:
+                name:
+                  type: string
+                  example: Minha Frequência Especial
+                  description: Nome do preset
+                description:
+                  type: string
+                  example: Preset personalizado para concentração profunda
+                  description: Descrição opcional
+                dimension:
+                  type: string
+                  default: Personalizado
+                  example: Personalizado
+                category:
+                  type: string
+                  default: Personalizado
+                  example: Foco
+                baseFrequency:
+                  type: number
+                  minimum: 100
+                  maximum: 1000
+                  example: 528
+                  description: Frequência base em Hz
+                beatFrequency:
+                  type: number
+                  minimum: 1
+                  maximum: 100
+                  example: 40
+                  description: Frequência de batida binaural em Hz
+                lightFrequency:
+                  type: number
+                  minimum: 1
+                  maximum: 30
+                  example: 10
+                  description: Frequência de luz estroboscópica em Hz
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 120
+                  example: 20
+                  description: Duração padrão em minutos
+                userId:
+                  type: string
+                  example: user-abc123
+                  description: ID do usuário (opcional, pode ser extraído do token)
+      responses:
+        '201':
+          description: Preset criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /presets/{presetId}:
+    get:
+      tags:
+        - presets
+      summary: Obter preset específico
+      description: Obter detalhes de um preset específico
+      parameters:
+        - name: presetId
+          in: path
+          required: true
+          description: ID do preset
+          schema:
+            type: string
+            example: 3d-focus
+      responses:
+        '200':
+          description: Detalhes do preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - presets
+      summary: Atualizar preset personalizado
+      description: Atualizar um preset personalizado (apenas presets criados pelo usuário)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: presetId
+          in: path
+          required: true
+          description: ID do preset
+          schema:
+            type: string
+            example: custom-abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Minha Frequência Atualizada
+                description:
+                  type: string
+                  example: Descrição atualizada
+                baseFrequency:
+                  type: number
+                  minimum: 100
+                  maximum: 1000
+                  example: 432
+                beatFrequency:
+                  type: number
+                  minimum: 1
+                  maximum: 100
+                  example: 8
+                lightFrequency:
+                  type: number
+                  minimum: 1
+                  maximum: 30
+                  example: 4
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 120
+                  example: 30
+                category:
+                  type: string
+                  example: Relaxamento
+      responses:
+        '200':
+          description: Preset atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Não é possível editar presets padrão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - presets
+      summary: Deletar preset personalizado
+      description: Deletar um preset personalizado (apenas presets criados pelo usuário)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: presetId
+          in: path
+          required: true
+          description: ID do preset
+          schema:
+            type: string
+            example: custom-abc123
+      responses:
+        '200':
+          description: Preset deletado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Preset deletado com sucesso
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Não é possível deletar presets padrão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /presets/seed:
+    post:
+      tags:
+        - presets
+      summary: Criar presets padrão
+      description: |
+        Endpoint para criar presets padrão do sistema (apenas para desenvolvimento).
+        Cria os presets básicos das dimensões 3D, 4D e 5D.
+      responses:
+        '200':
+          description: Presets padrão criados ou já existem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 6 presets padrão criados com sucesso
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # SESSÕES
+  /sessions:
+    get:
+      tags:
+        - sessions
+      summary: Listar sessões do usuário
+      description: |
+        Obter lista de sessões do usuário com filtros opcionais.
+        Inclui informações detalhadas de cada sessão e preset utilizado.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+        - name: dimension
+          in: query
+          description: Filtrar por dimensão do preset
+          schema:
+            type: string
+            enum: [3D, 4D, 5D, Personalizado]
+            example: 3D
+        - name: start_date
+          in: query
+          description: Data de início do filtro (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+            example: 2025-08-01T00:00:00Z
+        - name: end_date
+          in: query
+          description: Data de fim do filtro (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+            example: 2025-08-31T23:59:59Z
+        - name: limit
+          in: query
+          description: Número máximo de sessões a retornar
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+            example: 20
+      responses:
+        '200':
+          description: Lista de sessões
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - sessions
+      summary: Criar nova sessão
+      description: Registrar o início de uma nova sessão de meditação/terapia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - presetId
+                - startTime
+              properties:
+                userId:
+                  type: string
+                  example: user-abc123
+                  description: ID do usuário
+                presetId:
+                  type: string
+                  example: 3d-focus
+                  description: ID do preset utilizado
+                startTime:
+                  type: string
+                  format: date-time
+                  example: 2025-08-10T14:30:00Z
+                  description: Horário de início da sessão
+                endTime:
+                  type: string
+                  format: date-time
+                  example: 2025-08-10T14:50:00Z
+                  description: Horário de fim (opcional, para sessões já finalizadas)
+                duration:
+                  type: integer
+                  example: 1200
+                  description: Duração em segundos (opcional)
+                preMoodScore:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 6
+                  description: Avaliação de humor antes da sessão (1-10)
+                postMoodScore:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 8
+                  description: Avaliação de humor após a sessão (1-10)
+                notes:
+                  type: string
+                  example: Me senti mais concentrado e relaxado
+                  description: Notas pessoais sobre a sessão
+                deviceModel:
+                  type: string
+                  example: iPhone 13
+                  description: Modelo do dispositivo utilizado
+                headphonesUsed:
+                  type: boolean
+                  example: true
+                  description: Se foram utilizados fones de ouvido
+                roomDark:
+                  type: boolean
+                  example: false
+                  description: Se o ambiente estava escuro
+      responses:
+        '201':
+          description: Sessão criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/{sessionId}:
+    get:
+      tags:
+        - sessions
+      summary: Obter sessão específica
+      description: Obter detalhes de uma sessão específica
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: ID da sessão
+          schema:
+            type: string
+            example: session-abc123def456
+      responses:
+        '200':
+          description: Detalhes da sessão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - sessions
+      summary: Atualizar sessão
+      description: Atualizar uma sessão (principalmente para finalizar)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: ID da sessão
+          schema:
+            type: string
+            example: session-abc123def456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endTime:
+                  type: string
+                  format: date-time
+                  example: 2025-08-10T14:50:00Z
+                  description: Horário de fim da sessão
+                duration:
+                  type: integer
+                  example: 1200
+                  description: Duração total em segundos
+                postMoodScore:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 8
+                  description: Avaliação de humor após a sessão
+                notes:
+                  type: string
+                  example: Experiência muito relaxante
+                  description: Notas sobre a sessão
+                headphonesUsed:
+                  type: boolean
+                  example: true
+                  description: Se foram utilizados fones de ouvido
+                roomDark:
+                  type: boolean
+                  example: false
+                  description: Se o ambiente estava escuro
+      responses:
+        '200':
+          description: Sessão atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/{sessionId}/export:
+    get:
+      tags:
+        - sessions
+      summary: Exportar sessão como CSV
+      description: Exportar uma sessão específica em formato CSV
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: ID da sessão
+          schema:
+            type: string
+            example: session-abc123def456
+      responses:
+        '200':
+          description: Arquivo CSV da sessão
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  session_id,user_id,date_utc,timezone,preset_name,dimension_tag,base_frequency_hz,beat_frequency_hz,light_frequency_hz,duration_seconds,headphones_used,room_dark,pre_mood_score,post_mood_score,notes_text,device_model,firmware_version,recording_path,session_hash
+                  session-abc123,user-abc123,2025-08-10T14:30:00Z,UTC,Foco 3D,3D,528,40,10,1200,yes,no,6,8,"Me senti concentrado",iPhone 13,1.0.0,,hash_session-abc123
+          headers:
+            Content-Disposition:
+              description: Nome do arquivo para download
+              schema:
+                type: string
+                example: attachment; filename=session_abc123.csv
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/export:
+    get:
+      tags:
+        - sessions
+      summary: Exportar múltiplas sessões como CSV
+      description: Exportar sessões do usuário em formato CSV com filtros opcionais
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+        - name: dimension
+          in: query
+          description: Filtrar por dimensão
+          schema:
+            type: string
+            enum: [3D, 4D, 5D, Personalizado]
+            example: 3D
+        - name: start_date
+          in: query
+          description: Data de início do filtro
+          schema:
+            type: string
+            format: date-time
+            example: 2025-08-01T00:00:00Z
+        - name: end_date
+          in: query
+          description: Data de fim do filtro
+          schema:
+            type: string
+            format: date-time
+            example: 2025-08-31T23:59:59Z
+      responses:
+        '200':
+          description: Arquivo CSV com múltiplas sessões
+          content:
+            text/csv:
+              schema:
+                type: string
+          headers:
+            Content-Disposition:
+              description: Nome do arquivo para download
+              schema:
+                type: string
+                example: attachment; filename=singulary_sessions_user-abc123.csv
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/stats:
+    get:
+      tags:
+        - sessions
+      summary: Obter estatísticas das sessões
+      description: |
+        Obter estatísticas agregadas das sessões do usuário, incluindo:
+        - Total de sessões e minutos
+        - Melhoria média de humor
+        - Distribuição por dimensão e categoria
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+      responses:
+        '200':
+          description: Estatísticas das sessões
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalSessions:
+                    type: integer
+                    example: 25
+                    description: Total de sessões realizadas
+                  totalMinutes:
+                    type: integer
+                    example: 520
+                    description: Total de minutos de sessões
+                  avgMoodImprovement:
+                    type: number
+                    example: 1.8
+                    description: Melhoria média de humor (diferença pós - pré)
+                  dimensionStats:
+                    type: object
+                    example:
+                      "3D": 15
+                      "4D": 8
+                      "5D": 2
+                    description: Número de sessões por dimensão
+                  categoryStats:
+                    type: object
+                    example:
+                      "Foco": 10
+                      "Relaxamento": 8
+                      "Meditação": 5
+                      "Sono": 2
+                    description: Número de sessões por categoria
+                  moodSessionsCount:
+                    type: integer
+                    example: 20
+                    description: Número de sessões com avaliação de humor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # USUÁRIOS
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Obter perfil do usuário
+      description: Obter informações do perfil do usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+      responses:
+        '200':
+          description: Perfil do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - users
+      summary: Atualizar perfil do usuário
+      description: Atualizar informações do perfil do usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: João Silva Santos
+                  description: Nome completo do usuário
+                email:
+                  type: string
+                  format: email
+                  example: joao.santos@example.com
+                  description: Email do usuário
+      responses:
+        '200':
+          description: Perfil atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # DISPOSITIVOS (FUTURO)
+  /devices:
+    get:
+      tags:
+        - devices
+      summary: Listar dispositivos conectados
+      description: |
+        Listar dispositivos de hardware conectados ao usuário.
+        **Nota**: Esta funcionalidade será implementada em versões futuras.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID do usuário
+          schema:
+            type: string
+            example: user-abc123
+      responses:
+        '200':
+          description: Lista de dispositivos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '501':
+          description: Funcionalidade não implementada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /devices/{deviceId}/command:
+    post:
+      tags:
+        - devices
+      summary: Enviar comando para dispositivo
+      description: |
+        Enviar comando de controle para um dispositivo de hardware.
+        **Nota**: Esta funcionalidade será implementada em versões futuras.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          description: ID do dispositivo
+          schema:
+            type: string
+            example: device-led-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cmd
+              properties:
+                cmd:
+                  type: string
+                  enum: [set_freq, start_session, stop_session, set_brightness]
+                  example: set_freq
+                  description: Comando a ser executado
+                params:
+                  type: object
+                  example:
+                    frequency: 10
+                    brightness: 80
+                  description: Parâmetros do comando
+      responses:
+        '200':
+          description: Comando executado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Comando executado com sucesso
+                  deviceId:
+                    type: string
+                    example: device-led-001
+                  command:
+                    type: string
+                    example: set_freq
+                  status:
+                    type: string
+                    example: success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '501':
+          description: Funcionalidade não implementada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /devices/{deviceId}/status:
+    get:
+      tags:
+        - devices
+      summary: Obter status do dispositivo
+      description: |
+        Obter status atual e telemetria de um dispositivo de hardware.
+        **Nota**: Esta funcionalidade será implementada em versões futuras.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          description: ID do dispositivo
+          schema:
+            type: string
+            example: device-led-001
+      responses:
+        '200':
+          description: Status do dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '501':
+          description: Funcionalidade não implementada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtido através do endpoint de login.
+        Formato: `Bearer <token>`
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: user-abc123def456
+          description: ID único do usuário
+        name:
+          type: string
+          example: João Silva
+          description: Nome completo do usuário
+        email:
+          type: string
+          format: email
+          example: joao@example.com
+          description: Email do usuário
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-08-01T10:00:00Z
+          description: Data de criação da conta
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2025-08-10T15:30:00Z
+          description: Data da última atualização
+        lastLogin:
+          type: string
+          format: date-time
+          example: 2025-08-10T14:00:00Z
+          description: Data do último login
+
+    Preset:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 3d-focus
+          description: ID único do preset
+        name:
+          type: string
+          example: Foco 3D
+          description: Nome do preset
+        description:
+          type: string
+          example: Frequências para concentração e produtividade
+          description: Descrição do preset
+        dimension:
+          type: string
+          enum: [3D, 4D, 5D, Personalizado]
+          example: 3D
+          description: Dimensão espiritual do preset
+        category:
+          type: string
+          enum: [Foco, Relaxamento, Meditação, Sono, Espiritual, Cura, Personalizado]
+          example: Foco
+          description: Categoria do preset
+        baseFrequency:
+          type: number
+          example: 528
+          description: Frequência base em Hz
+        beatFrequency:
+          type: number
+          example: 40
+          description: Frequência de batida binaural em Hz
+        lightFrequency:
+          type: number
+          example: 10
+          description: Frequência de luz estroboscópica em Hz
+        duration:
+          type: integer
+          example: 20
+          description: Duração padrão em minutos
+        isCustom:
+          type: boolean
+          example: false
+          description: Se é um preset personalizado
+        userId:
+          type: string
+          nullable: true
+          example: user-abc123
+          description: ID do usuário (null para presets padrão)
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-08-01T10:00:00Z
+          description: Data de criação
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2025-08-10T15:30:00Z
+          description: Data da última atualização
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          example: session-abc123def456
+          description: ID único da sessão
+        userId:
+          type: string
+          example: user-abc123
+          description: ID do usuário
+        presetId:
+          type: string
+          example: 3d-focus
+          description: ID do preset utilizado
+        startTime:
+          type: string
+          format: date-time
+          example: 2025-08-10T14:30:00Z
+          description: Horário de início da sessão
+        endTime:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-08-10T14:50:00Z
+          description: Horário de fim da sessão
+        duration:
+          type: integer
+          nullable: true
+          example: 1200
+          description: Duração em segundos
+        preMoodScore:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 10
+          example: 6
+          description: Avaliação de humor antes da sessão (1-10)
+        postMoodScore:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 10
+          example: 8
+          description: Avaliação de humor após a sessão (1-10)
+        notes:
+          type: string
+          nullable: true
+          example: Me senti mais concentrado e relaxado
+          description: Notas pessoais sobre a sessão
+        deviceModel:
+          type: string
+          nullable: true
+          example: iPhone 13
+          description: Modelo do dispositivo utilizado
+        headphonesUsed:
+          type: boolean
+          example: true
+          description: Se foram utilizados fones de ouvido
+        roomDark:
+          type: boolean
+          example: false
+          description: Se o ambiente estava escuro
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-08-10T14:30:00Z
+          description: Data de criação do registro
+
+    Device:
+      type: object
+      description: Dispositivo de hardware conectado (funcionalidade futura)
+      properties:
+        id:
+          type: string
+          example: device-led-001
+          description: ID único do dispositivo
+        name:
+          type: string
+          example: LED Ring Singulary
+          description: Nome do dispositivo
+        type:
+          type: string
+          enum: [led_ring, binaural_headset, sensor_array]
+          example: led_ring
+          description: Tipo do dispositivo
+        model:
+          type: string
+          example: SLR-2025
+          description: Modelo do dispositivo
+        firmwareVersion:
+          type: string
+          example: 1.2.3
+          description: Versão do firmware
+        isConnected:
+          type: boolean
+          example: true
+          description: Se o dispositivo está conectado
+        batteryLevel:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 100
+          example: 85
+          description: Nível da bateria (%)
+        lastSeen:
+          type: string
+          format: date-time
+          example: 2025-08-10T15:30:00Z
+          description: Última vez que o dispositivo foi visto online
+
+    DeviceStatus:
+      type: object
+      description: Status atual de um dispositivo (funcionalidade futura)
+      properties:
+        deviceId:
+          type: string
+          example: device-led-001
+          description: ID do dispositivo
+        isOnline:
+          type: boolean
+          example: true
+          description: Se o dispositivo está online
+        currentFrequency:
+          type: number
+          nullable: true
+          example: 10
+          description: Frequência atual em Hz
+        brightness:
+          type: integer
+          nullable: true
+          minimum: 0
+          maximum: 100
+          example: 80
+          description: Brilho atual (%)
+        temperature:
+          type: number
+          nullable: true
+          example: 35.2
+          description: Temperatura do dispositivo (°C)
+        uptime:
+          type: integer
+          example: 86400
+          description: Tempo ligado em segundos
+        lastCommand:
+          type: string
+          nullable: true
+          example: set_freq
+          description: Último comando executado
+        errors:
+          type: array
+          items:
+            type: string
+          example: []
+          description: Lista de erros ativos
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Mensagem de erro
+          description: Descrição do erro
+        code:
+          type: string
+          example: INVALID_INPUT
+          description: Código do erro (opcional)
+        details:
+          type: object
+          description: Detalhes adicionais do erro (opcional)
+
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Dados de entrada inválidos
+            code: INVALID_INPUT
+
+    Unauthorized:
+      description: Não autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Token inválido ou expirado
+            code: UNAUTHORIZED
+
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Recurso não encontrado
+            code: NOT_FOUND
+
+    InternalServerError:
+      description: Erro interno do servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Erro interno do servidor
+            code: INTERNAL_ERROR
+
+  examples:
+    CreatePresetExample:
+      summary: Exemplo de criação de preset
+      value:
+        name: Minha Frequência de Cura
+        description: Preset personalizado para cura e regeneração
+        dimension: Personalizado
+        category: Cura
+        baseFrequency: 741
+        beatFrequency: 7.83
+        lightFrequency: 5
+        duration: 30
+        userId: user-abc123
+
+    CreateSessionExample:
+      summary: Exemplo de criação de sessão
+      value:
+        userId: user-abc123
+        presetId: 3d-focus
+        startTime: 2025-08-10T14:30:00Z
+        preMoodScore: 6
+        deviceModel: iPhone 13
+        headphonesUsed: true
+        roomDark: false
+
+    UpdateSessionExample:
+      summary: Exemplo de finalização de sessão
+      value:
+        endTime: 2025-08-10T14:50:00Z
+        duration: 1200
+        postMoodScore: 8
+        notes: Sessão muito relaxante, me senti renovado
+        headphonesUsed: true
+        roomDark: false
+
