@@ -1,249 +1,94 @@
-# Singulary - Ressonador Quântico Pessoal (RQP)
+# Singulary: Ressonador Quântico Pessoal (RQP)
 
-![Singulary Logo](./LogoSingularyemTonsGradientes.png)
+![Singulary Logo](/home/ubuntu/upload/LogoSingularyemTonsGradientes.png)
 
-## Visão Geral
+O Singulary é um aplicativo inovador projetado para auxiliar na expansão da consciência e no bem-estar através da combinação de terapia sonora binaural e visualização estroboscópica. Ele oferece uma jornada personalizada através de diferentes "dimensões" de consciência (3D, 4D, 5D), permitindo aos usuários explorar estados mentais profundos, melhorar o foco, reduzir o estresse e promover a cura emocional e espiritual.
 
-O **Singulary** é um aplicativo inovador que combina terapia sonora binaural, visualização estroboscópica e tecnologia de expansão de consciência para proporcionar experiências transformadoras de bem-estar. O projeto representa a convergência entre ciência moderna e sabedoria ancestral sobre frequências e estados alterados de consciência.
+## ✨ Funcionalidades Principais
 
-### 🎯 Missão
-Democratizar o acesso a tecnologias de expansão de consciência, oferecendo ferramentas seguras e eficazes para meditação, relaxamento, foco e crescimento espiritual.
+*   **Terapia Sonora Binaural**: Frequências precisas para induzir estados cerebrais específicos.
+*   **Visualização Estroboscópica**: Padrões de luz sincronizados para potencializar a experiência (com avisos de segurança).
+*   **Dimensões de Consciência (3D, 4D, 5D)**: Presets categorizados para diferentes níveis de experiência e objetivos.
+*   **Presets Personalizáveis**: Crie e salve suas próprias configurações de áudio e visual.
+*   **Histórico de Sessões**: Acompanhe seu progresso e observe padrões de bem-estar.
+*   **Autenticação JWT**: Segurança para seus dados e sessões.
 
-### ✨ Características Principais
-- **Terapia Sonora Binaural**: Frequências precisas para diferentes estados mentais
-- **Visualização Estroboscópica**: Padrões de luz sincronizados (com avisos de segurança)
-- **Dimensões Espirituais**: Presets organizados por níveis 3D, 4D e 5D
-- **Personalização Avançada**: Criação de presets customizados
-- **Análise de Progresso**: Tracking de humor e evolução pessoal
-- **Gamificação**: Sistema de jornada espiritual e conquistas
+## 🚀 Acessar o Aplicativo Deployado
 
-## 🏗️ Arquitetura do Projeto
+Você pode acessar a versão mais recente do Singulary diretamente pelo seu navegador:
 
-```
-singulary-project/
-├── singulary-frontend/          # Aplicação React
-│   ├── src/
-│   │   ├── components/          # Componentes React
-│   │   ├── context/            # Context API
-│   │   ├── utils/              # Utilitários e motor de áudio
-│   │   └── assets/             # Imagens e recursos
-│   └── package.json
-├── singulary-backend/           # API Flask
-│   ├── src/
-│   │   ├── models/             # Modelos de dados
-│   │   ├── routes/             # Endpoints da API
-│   │   └── database/           # Banco de dados SQLite
-│   └── requirements.txt
-├── wireframes-singulary.md      # Wireframes detalhados
-├── api-specification-singulary.yaml  # Documentação OpenAPI
-├── plano-acao-singulary.md      # Plano de ação integrado
-└── *.csv                       # Templates e exemplos de dados
-```
+*   **Aplicativo (Frontend)**: [https://osjxoywh.manus.space](https://osjxoywh.manus.space)
+*   **Site de Marketing**: [https://emhwkqoq.manus.space](https://emhwkqoq.manus.space)
+*   **API (Backend)**: [https://kkh7ikcy081e.manus.space/api](https://kkh7ikcy081e.manus.space/api)
 
-## 🚀 Início Rápido
+## 💻 Como Executar Localmente
+
+Para executar o Singulary em seu ambiente local, siga as instruções abaixo:
 
 ### Pré-requisitos
-- Node.js 20+ 
-- Python 3.11+
-- Git
 
-### Instalação
+Certifique-se de ter o seguinte instalado:
 
-1. **Clone o repositório**
+*   Python 3.8+
+*   Node.js 16+
+*   npm ou pnpm
+
+### 1. Clonar o Repositório
+
 ```bash
-git clone <repository-url>
-cd singulary-project
+git clone https://github.com/GabrielJaccoud/SingularyApp-Singulary.git
+cd SingularyApp-Singulary
 ```
 
-2. **Configure o Backend**
+### 2. Configurar e Iniciar o Backend (Flask)
+
 ```bash
 cd singulary-backend
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou venv\Scripts\activate  # Windows
+source venv/bin/activate  # No Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-3. **Configure o Frontend**
-```bash
-cd ../singulary-frontend
-npm install
-# ou pnpm install
-```
-
-### Executando o Projeto
-
-1. **Inicie o Backend**
-```bash
-cd singulary-backend
-source venv/bin/activate
 python src/main.py
 ```
-O backend estará disponível em `http://localhost:5000`
 
-2. **Inicie o Frontend**
+O backend será iniciado em `http://localhost:5000`.
+
+### 3. Configurar e Iniciar o Frontend (React)
+
 ```bash
-cd singulary-frontend
-npm run dev
+cd ../singulary-frontend
+pnpm install  # ou npm install
+pnpm run dev  # ou npm run start
 ```
-O frontend estará disponível em `http://localhost:5173`
 
-3. **Inicialize os Dados**
+O frontend será iniciado em `http://localhost:5173` (ou outra porta disponível).
+
+### 4. Inicializar Presets Padrão (Opcional)
+
+Para popular o banco de dados com presets padrão, execute o seguinte comando após iniciar o backend:
+
 ```bash
-# Criar presets padrão
 curl -X POST http://localhost:5000/api/presets/seed
 ```
 
-## 📱 Funcionalidades Implementadas
+## 📄 Manual do Usuário
 
-### ✅ MVP Completo
-- [x] Sistema de autenticação JWT
-- [x] Gerenciamento de presets (padrão + personalizados)
-- [x] Player de áudio binaural
-- [x] Visualização estroboscópica com avisos de segurança
-- [x] Registro e análise de sessões
-- [x] Sistema de avaliação de humor
-- [x] Exportação de dados em CSV
-- [x] Interface responsiva e acessível
-- [x] Navegação por dimensões espirituais (3D, 4D, 5D)
+Para um guia detalhado sobre como usar o Singulary, seus recursos, avisos de segurança e perguntas frequentes, consulte o Manual do Usuário:
 
-### 🔄 Em Desenvolvimento
-- [ ] Sistema de gamificação completo
-- [ ] Notificações e lembretes
-- [ ] Modo offline
-- [ ] Integração com wearables
-- [ ] IA para recomendações personalizadas
+*   [Manual do Usuário (PDF)](manual_usuario_singulary.pdf)
+*   [Manual do Usuário (Markdown)](manual_usuario_singulary.md)
 
-### 🔮 Roadmap Futuro
-- [ ] Hardware dedicado (LED Ring, Headsets)
-- [ ] Realidade virtual e aumentada
-- [ ] Estudos científicos de eficácia
-- [ ] Expansão internacional
-- [ ] Plataforma para profissionais
+## 🛡️ Licença
 
-## 🛡️ Segurança e Avisos
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-### ⚠️ AVISO IMPORTANTE
-Este aplicativo utiliza **luzes estroboscópicas** que podem causar convulsões em pessoas com epilepsia fotossensível. Sempre:
-- Leia todos os avisos antes de usar
-- Use o modo "apenas áudio" se tiver histórico de epilepsia
-- Pare imediatamente se sentir desconforto
-- Consulte um médico antes de usar se tiver condições neurológicas
+## 📸 Capturas de Tela
 
-### 🔒 Privacidade
-- Dados pessoais criptografados
-- Conformidade com LGPD/GDPR
-- Opção de manter dados localmente
-- Transparência total sobre coleta de dados
-
-## 🧪 Tecnologias Utilizadas
-
-### Frontend
-- **React 18** com Hooks e Context API
-- **Vite** para build e desenvolvimento
-- **Tailwind CSS** para estilização
-- **Shadcn/ui** para componentes
-- **Web Audio API** para síntese de áudio
-- **Canvas API** para visualizações
-
-### Backend
-- **Flask** com blueprints
-- **SQLAlchemy** para ORM
-- **JWT** para autenticação
-- **Flask-CORS** para integração frontend
-- **SQLite** para banco de dados
-
-### DevOps e Ferramentas
-- **Git** para versionamento
-- **ESLint/Prettier** para qualidade de código
-- **OpenAPI 3.0** para documentação da API
-- **CSV** para exportação de dados
-
-## 📊 Estrutura de Dados
-
-### Principais Entidades
-- **Users**: Usuários do sistema
-- **Presets**: Configurações de frequências
-- **Sessions**: Registros de sessões realizadas
-- **Devices**: Hardware conectado (futuro)
-
-### Exemplo de Preset
-```json
-{
-  "id": "3d-focus",
-  "name": "Foco 3D",
-  "dimension": "3D",
-  "category": "Foco",
-  "baseFrequency": 528,
-  "beatFrequency": 40,
-  "lightFrequency": 10,
-  "duration": 20
-}
-```
-
-## 🔧 Configuração Avançada
-
-### Variáveis de Ambiente
-```bash
-# Backend
-FLASK_ENV=development
-SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///app.db
-
-# Frontend
-VITE_API_URL=http://localhost:5000/api
-VITE_APP_NAME=Singulary
-```
-
-### Personalização de Frequências
-O sistema suporta:
-- **Frequência Base**: 100-1000 Hz
-- **Frequência Binaural**: 1-100 Hz
-- **Frequência de Luz**: 1-30 Hz (com limitações de segurança)
-
-## 🤝 Contribuindo
-
-### Como Contribuir
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Diretrizes
-- Siga os padrões de código estabelecidos
-- Adicione testes para novas funcionalidades
-- Mantenha a documentação atualizada
-- Priorize sempre a segurança do usuário
-
-## 📄 Documentação Adicional
-
-- [Wireframes Detalhados](./wireframes-singulary.md)
-- [Especificação da API](./api-specification-singulary.yaml)
-- [Plano de Ação](./plano-acao-singulary.md)
-- [Templates de Dados](./presets_singulary.csv)
-
-## 📞 Suporte e Contato
-
-- **Email**: suporte@singulary.app
-- **Website**: https://singulary.app
-- **Documentação**: https://docs.singulary.app
-- **Comunidade**: https://community.singulary.app
-
-## 📜 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🙏 Agradecimentos
-
-- Comunidade de desenvolvedores de bem-estar tecnológico
-- Pesquisadores em neurociência e terapia sonora
-- Beta testers e early adopters
-- Todos que acreditam no potencial transformador da tecnologia
+(Em breve: Adicionar capturas de tela do aplicativo e do site de marketing aqui.)
 
 ---
 
-**Desenvolvido com ❤️ pela equipe Singulary**
+**Desenvolvido por:** Manus AI
+**Versão:** 1.0
+**Data:** 10 de Agosto de 2025
 
-*"Conectando você ao seu potencial e além..."*
 
