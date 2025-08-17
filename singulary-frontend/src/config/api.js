@@ -1,6 +1,6 @@
 // Configuração da API para o Singulary
 export const API_CONFIG = {
-  BASE_URL: 'https://kkh7ikcy081e.manus.space/api',
+  BASE_URL: 'http://localhost:5000/api',
   ENDPOINTS: {
     HEALTH: '/health',
     AUTH: {
