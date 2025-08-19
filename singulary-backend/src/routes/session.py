@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from src.models.session import Session, db
 from src.models.preset import Preset
+from src.routes.auth import require_auth
 from datetime import datetime
 import uuid
 import csv
@@ -9,20 +10,17 @@ import io
 session_bp = Blueprint('session', __name__)
 
 @session_bp.route('/sessions', methods=['GET'])
+@require_auth
 def get_sessions():
-    """Listar sessões do usuário"""
+    """Listar sessões do usuário autenticado"""
     try:
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return jsonify({'error': 'user_id é obrigatório'}), 400
-        
         # Filtros opcionais
         dimension = request.args.get('dimension')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         limit = request.args.get('limit', 50, type=int)
         
-        query = Session.query.filter(Session.user_id == user_id)
+        query = Session.query.filter(Session.user_id == request.current_user_id)
         
         # Filtro por dimensão
         if dimension and dimension != 'Todas':
@@ -40,32 +38,52 @@ def get_sessions():
         # Ordenar por data mais recente
         sessions = query.order_by(Session.start_time.desc()).limit(limit).all()
         
-        return jsonify([session.to_dict() for session in sessions])
+        return jsonify({
+            'sessions': [session.to_dict() for session in sessions]
+        })
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions/<session_id>', methods=['GET'])
+@require_auth
 def get_session(session_id):
-    """Obter detalhes de uma sessão específica"""
+    """Obter detalhes de uma sessão específica do usuário"""
     try:
-        session = Session.query.get_or_404(session_id)
-        return jsonify(session.to_dict())
+        session = Session.query.filter(
+            (Session.id == session_id) & 
+            (Session.user_id == request.current_user_id)
+        ).first()
+        
+        if not session:
+            return jsonify({'error': 'Sessão não encontrada'}), 404
+        
+        return jsonify({'session': session.to_dict()})
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions', methods=['POST'])
+@require_auth
 def create_session():
-    """Criar nova sessão"""
+    """Criar nova sessão para o usuário autenticado"""
     try:
         data = request.get_json()
         
         # Validar dados obrigatórios
-        required_fields = ['userId', 'presetId', 'startTime']
+        required_fields = ['presetId', 'startTime']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Campo obrigatório: {field}'}), 400
+        
+        # Verificar se o preset existe e é acessível pelo usuário
+        preset = Preset.query.filter(
+            (Preset.id == data['presetId']) & 
+            ((Preset.user_id == request.current_user_id) | (Preset.user_id == None))
+        ).first()
+        
+        if not preset:
+            return jsonify({'error': 'Preset não encontrado ou não acessível'}), 404
         
         # Converter datas
         start_time = datetime.fromisoformat(data['startTime'].replace('Z', '+00:00'))
@@ -75,7 +93,7 @@ def create_session():
         
         session = Session(
             id=f"session-{uuid.uuid4().hex[:12]}",
-            user_id=data['userId'],
+            user_id=request.current_user_id,
             preset_id=data['presetId'],
             start_time=start_time,
             end_time=end_time,
@@ -91,17 +109,28 @@ def create_session():
         db.session.add(session)
         db.session.commit()
         
-        return jsonify(session.to_dict()), 201
+        return jsonify({
+            'message': 'Sessão criada com sucesso',
+            'session': session.to_dict()
+        }), 201
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions/<session_id>', methods=['PUT'])
+@require_auth
 def update_session(session_id):
-    """Atualizar sessão (principalmente para finalizar)"""
+    """Atualizar sessão do usuário (principalmente para finalizar)"""
     try:
-        session = Session.query.get_or_404(session_id)
+        session = Session.query.filter(
+            (Session.id == session_id) & 
+            (Session.user_id == request.current_user_id)
+        ).first()
+        
+        if not session:
+            return jsonify({'error': 'Sessão não encontrada'}), 404
+        
         data = request.get_json()
         
         # Atualizar campos
@@ -120,17 +149,27 @@ def update_session(session_id):
         
         db.session.commit()
         
-        return jsonify(session.to_dict())
+        return jsonify({
+            'message': 'Sessão atualizada com sucesso',
+            'session': session.to_dict()
+        })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions/<session_id>/export', methods=['GET'])
+@require_auth
 def export_session(session_id):
-    """Exportar sessão específica como CSV"""
+    """Exportar sessão específica do usuário como CSV"""
     try:
-        session = Session.query.get_or_404(session_id)
+        session = Session.query.filter(
+            (Session.id == session_id) & 
+            (Session.user_id == request.current_user_id)
+        ).first()
+        
+        if not session:
+            return jsonify({'error': 'Sessão não encontrada'}), 404
         
         # Criar CSV
         output = io.StringIO()
@@ -157,19 +196,16 @@ def export_session(session_id):
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions/export', methods=['GET'])
+@require_auth
 def export_sessions():
-    """Exportar múltiplas sessões como CSV"""
+    """Exportar múltiplas sessões do usuário como CSV"""
     try:
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return jsonify({'error': 'user_id é obrigatório'}), 400
-        
         # Filtros opcionais
         dimension = request.args.get('dimension')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         
-        query = Session.query.filter(Session.user_id == user_id)
+        query = Session.query.filter(Session.user_id == request.current_user_id)
         
         # Aplicar filtros
         if dimension and dimension != 'Todas':
@@ -204,7 +240,7 @@ def export_sessions():
         # Criar resposta
         response = make_response(output.getvalue())
         response.headers['Content-Type'] = 'text/csv'
-        response.headers['Content-Disposition'] = f'attachment; filename=singulary_sessions_{user_id}.csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=singulary_sessions_{request.current_user_id}.csv'
         
         return response
         
@@ -212,14 +248,11 @@ def export_sessions():
         return jsonify({'error': str(e)}), 500
 
 @session_bp.route('/sessions/stats', methods=['GET'])
+@require_auth
 def get_session_stats():
-    """Obter estatísticas das sessões do usuário"""
+    """Obter estatísticas das sessões do usuário autenticado"""
     try:
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return jsonify({'error': 'user_id é obrigatório'}), 400
-        
-        sessions = Session.query.filter(Session.user_id == user_id).all()
+        sessions = Session.query.filter(Session.user_id == request.current_user_id).all()
         
         # Calcular estatísticas
         total_sessions = len(sessions)
