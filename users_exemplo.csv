@@ -1,7 +1,0 @@
-user_id,name,email,created_at,last_login,total_sessions,total_minutes,favorite_dimension,avg_mood_improvement,consent_given,privacy_mode
-user-abc123,João Silva,joao@example.com,2025-08-01T10:00:00Z,2025-08-10T14:00:00Z,8,178,3D,2.1,true,true
-user-def456,Maria Santos,maria@example.com,2025-08-02T15:30:00Z,2025-08-10T18:30:00Z,7,165,5D,2.4,true,false
-user-ghi789,Pedro Costa,pedro@example.com,2025-08-03T09:15:00Z,2025-08-10T08:45:00Z,5,120,4D,1.8,true,true
-user-jkl012,Ana Oliveira,ana@example.com,2025-08-04T14:20:00Z,2025-08-09T20:15:00Z,3,75,3D,1.5,true,false
-user-mno345,Carlos Ferreira,carlos@example.com,2025-08-05T11:45:00Z,2025-08-08T16:30:00Z,2,45,Personalizado,2.0,true,true
-
