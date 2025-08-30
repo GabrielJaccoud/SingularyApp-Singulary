@@ -18,16 +18,8 @@
       "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
+      "src": "/((?!.*\\.).*)$",
       "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*\\.js)",
-      "headers": [
-        { "key": "Content-Type", "value": "application/javascript" }
-      ]
     }
   ]
 }
