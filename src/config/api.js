@@ -1,6 +1,6 @@
 // Configuração da API para o Singulary
 export const API_CONFIG = {
-  BASE_URL: '/api',
+  BASE_URL: 'https://singularyapp-singulary-production.up.railway.app/api',
   ENDPOINTS: {
     HEALTH: '/health',
     AUTH: {
