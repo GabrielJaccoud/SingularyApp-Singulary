@@ -11,14 +11,14 @@
   ],
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "https://singularyapp-singulary-production.up.railway.app/api/$1"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/((?!.*\\.).*)$",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
